@@ -31,9 +31,9 @@ DHT22_ERROR_t errorCode;
   
   // The sensor can only be read from every 1-2s, and requires a minimum
   // 2s warm-up after power-on.
-  delay(1000);
+  //delay(1000);
   
-  Serial.print("Requesting data...");
+  //Serial.print("Requesting data...");
   errorCode = myDHT22.readData();
   switch(errorCode)
   {
@@ -52,7 +52,7 @@ DHT22_ERROR_t errorCode;
                    myDHT22.getHumidityInt()/10, myDHT22.getHumidityInt()%10);
       Serial.println(buf);
       break;
-    case DHT_ERROR_CHECKSUM:
+    /*case DHT_ERROR_CHECKSUM:
       Serial.print("check sum error ");
       Serial.print(myDHT22.getTemperatureC());
       Serial.print("C ");
@@ -75,33 +75,35 @@ DHT22_ERROR_t errorCode;
       Serial.println("Data Timeout ");
       break;
     case DHT_ERROR_TOOQUICK:
-      Serial.println("Polled to quick ");
-      break;
+      //Serial.println("Polled to quick ");
+      break;*/
   }
 
   
 
   if (AnalogValue>800)
   {
-    analogWrite(REDPin, 255);
-    analogWrite(GREENPin, 255);
-    analogWrite(BLUEPin, 255);
-  }
-
-  if (AnalogValue<=800)
-  {
-    analogWrite(REDPin, 0);
-    analogWrite(GREENPin, 0);
-    analogWrite(BLUEPin, 0);
-  }
-
-  if (myDHT22.getHumidity() >70.0)
-  {
     analogWrite(REDPin,0);
   }
 
-  if (myDHT22.getHumidity() <= 70.0)
+  else
   {
     analogWrite(REDPin,255);
+    analogWrite(GREENPin,255);
+    analogWrite(BLUEPin,255);
+  }
+
+  if (myDHT22.getHumidity() > 62.0)
+  {
+    
+    analogWrite(GREENPin,0);
+    
+  }
+
+  else
+  {
+    analogWrite(REDPin,255);
+    analogWrite(GREENPin,255);
+    analogWrite(BLUEPin,255);
   }
 }
