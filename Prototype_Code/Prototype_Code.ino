@@ -24,7 +24,7 @@ void loop()
 {
 
   unsigned int AnalogValue;
-  AnalogValue = analogRead(A0);
+  AnalogValue = analogRead(A0);//pin of light sensor
   //Serial.println(AnalogValue); 
 
 DHT22_ERROR_t errorCode;
