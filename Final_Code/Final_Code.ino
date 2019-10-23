@@ -1,35 +1,26 @@
-//0 is max light, 999 is max dark
-int REDPin1 = 2;    // RED pin of the LED1 to PWM pin 2
-int GREENPin1 = 3;  // GREEN pin of the LED1 to PWM pin 3
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+ #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
+#endif
 
-int REDPin2 = 4;    // RED pin of the LED2 to PWM pin 4
-int GREENPin2 = 5;  // GREEN pin of the LED2 to PWM pin 5
+// Which pin on the Arduino is connected to the NeoPixels?
+#define PIN 5 // On Trinket or Gemma, suggest changing this to 1
 
-int REDPin3 = 6;    // RED pin of the LED3 to PWM pin 6
-int GREENPin3 = 7;  // GREEN pin of the LED3 to PWM pin 7
+// How many NeoPixels are attached to the Arduino?
+#define NUMPIXELS 300 // Popular NeoPixel ring size
 
-int REDPin4 = 8;    // RED pin of the LED4 to PWM pin 8
-int GREENPin4 = 9;  // GREEN pin of the LED4 to PWM pin 9
+// When setting up the NeoPixel library, we tell it how many pixels,
+// and which pin to use to send signals. Note that for older NeoPixel
+// strips you might need to change the third parameter -- see the
+// strandtest example for more information on possible values.
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
-int REDPin5 = 10;    // RED pin of the LED5 to PWM pin 10
-int GREENPin5 = 11;  // GREEN pin of the LED5 to PWM pin 11
+#define DELAYVAL 50 // Time (in milliseconds) to pause between pixels
+
 
 double humidity = 70.0;
 int LEDdelay = 500;
 double lightThreshold = 200;
-
-/*
-PINOUT:
-RC522 MODULE    Uno/Nano     MEGA
-SDA             D10          D49
-SCK             D13          D52
-MOSI            D11          D51
-MISO            D12          D50
-IRQ             N/A          N/A
-GND             GND          GND
-RST             D9           D49
-3.3V            3.3V         3.3V
-*/
 
 int start = 0; // start of project
 
@@ -44,35 +35,44 @@ DHT22 myDHT22(DHT22_PIN);
 
 //LED 0 is max on, 255 is max off
 
+/*
+PINOUT:
+RC522 MODULE    Uno/Nano     MEGA
+SDA             D10          D49
+SCK             D13          D52
+MOSI            D11          D51
+MISO            D12          D50
+IRQ             N/A          N/A
+GND             GND          GND
+RST             D9           D49
+3.3V            3.3V         3.3V
+*/
+
 /* Include the standard Arduino SPI library */
 #include <SPI.h>
 /* Include the RFID library */
 #include <RFID.h>
-
 /* Define the DIO used for the SDA (SS) and RST (reset) pins. */
 #define SDA_DIO 49
 #define RESET_DIO 48
 /* Create an instance of the RFID library */
 RFID RC522(SDA_DIO, RESET_DIO); 
 
-int axeCount = 5;
+int axeCount = 4;
 
 
 void setup()
 {
-  pinMode(REDPin1, OUTPUT);
-  pinMode(GREENPin1, OUTPUT);
-  pinMode(REDPin2, OUTPUT);
-  pinMode(GREENPin2, OUTPUT);
-  pinMode(REDPin3, OUTPUT);
-  pinMode(GREENPin3, OUTPUT);
-  pinMode(REDPin4, OUTPUT);
-  pinMode(GREENPin4, OUTPUT);
-  pinMode(REDPin5, OUTPUT);
-  pinMode(GREENPin5, OUTPUT);
-
-  
   Serial.begin(9600);
+
+   // These lines are specifically to support the Adafruit Trinket 5V 16 MHz.
+  // Any other board, you can remove this part (but no harm leaving it):
+#if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
+  clock_prescale_set(clock_div_1);
+#endif
+  // END of Trinket-specific code.
+
+  pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
 
   /* Enable the SPI interface */
   SPI.begin(); 
@@ -118,94 +118,94 @@ DHT22_ERROR_t errorCode;
   }
 
 if (start == 0){
-    analogWrite(REDPin1,255);
-    analogWrite(GREENPin1,255);
-    analogWrite(REDPin2,255);
-    analogWrite(GREENPin2,255);
-    analogWrite(REDPin3,255);
-    analogWrite(GREENPin3,255);
-    analogWrite(REDPin4,255);
-    analogWrite(GREENPin4,255);
-    analogWrite(REDPin5,255);
-    analogWrite(GREENPin5,255);
+    pixels.clear(); // Set all pixel colors to 'off'
     start = 1;
 }
 
 if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause each group to turn green, inside out
   {
-    analogWrite(REDPin1,255);
-    analogWrite(REDPin2,255);
-    analogWrite(REDPin3,255);
-    analogWrite(REDPin4,255);
-    analogWrite(REDPin5,255);
+    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+
+    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+    pixels.setPixelColor(i, pixels.Color(0,150,0));
+
+    pixels.show();   // Send the updated pixel colors to the hardware.
+
+    delay(DELAYVAL); // Pause before next pass through loop
+    }
     
-    analogWrite(GREENPin1,0);
-    delay(LEDdelay);
-    analogWrite(GREENPin2,0);
-    delay(LEDdelay);
-    analogWrite(GREENPin3,0);
-    delay(LEDdelay);
-    analogWrite(GREENPin4,0);
-    delay(LEDdelay);
-    analogWrite(GREENPin5,0);
-    delay(LEDdelay);
     start = 2;
-    axeCount = 5;
+    axeCount = 4;
   }
   
-  if ((LightValue<lightThreshold) && (start == 2)) //covering light will cause each group to turn red, inside out then turn off
+  if ((LightValue<lightThreshold) && (start == 2)) //shining light will cause each group to turn red, inside out then turn off
   {
-    analogWrite(GREENPin1,255);
-    analogWrite(GREENPin2,255);
-    analogWrite(GREENPin3,255);
-    analogWrite(GREENPin4,255);
-    analogWrite(GREENPin5,255);
-    
-    analogWrite(REDPin1,0);
-    delay(LEDdelay);
-    analogWrite(REDPin2,0);
-    delay(LEDdelay);
-    analogWrite(REDPin3,0);
-    delay(LEDdelay);
-    analogWrite(REDPin4,0);   
-    delay(LEDdelay);
-    analogWrite(REDPin5,0);
-    delay(LEDdelay);
+    //delay(500);
+    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
 
-    analogWrite(REDPin5,255);
-    delay(LEDdelay);
-    analogWrite(REDPin4,255);
-    delay(LEDdelay);
-    analogWrite(REDPin3,255);
-    delay(LEDdelay);
-    analogWrite(REDPin2,255);
-    delay(LEDdelay);
-    analogWrite(REDPin1,255);
+    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+    pixels.setPixelColor(i, pixels.Color(150, 0, 0));
+
+    pixels.show();   // Send the updated pixel colors to the hardware.
+
+    delay(DELAYVAL); // Pause before next pass through loop
+    }
+    delay(10000);
     start = 1;
+
+    delay(10000);
   }
 
   /* Has a card been detected? */
-  if ((RC522.isCard()) && (start == 2) )
+  if ((RC522.isCard()) && (start == 2) ) //will turn off from green, outside in
   {
     switch(axeCount){
-      case 5:
-      analogWrite(GREENPin5,255);
-      axeCount--;
-      break;
       case 4:
-      analogWrite(GREENPin4,255);
+      for(int i=0; i<75; i++) { // For each pixel...
+
+      // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+      pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+
+      pixels.show();   // Send the updated pixel colors to the hardware.
+
+      delay(DELAYVAL); // Pause before next pass through loop
+      }
       axeCount--;
       break;
       case 3:
-      analogWrite(GREENPin3,255);
+      for(int i=75; i<150; i++) { // For each pixel...
+
+      // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+      pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+
+      pixels.show();   // Send the updated pixel colors to the hardware.
+
+      delay(DELAYVAL); // Pause before next pass through loop
+      }
       axeCount--;
       break;
       case 2:
-      analogWrite(GREENPin2,255);
+      for(int i=150; i<225; i++) { // For each pixel...
+
+      // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+      pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+
+      pixels.show();   // Send the updated pixel colors to the hardware.
+
+      delay(DELAYVAL); // Pause before next pass through loop
+      }
       axeCount--;
       break;
       case 1:
-      analogWrite(GREENPin1,255);
+      for(int i=225; i<300; i++) { // For each pixel...
+
+      // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+      pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+
+      pixels.show();   // Send the updated pixel colors to the hardware.
+
+      delay(DELAYVAL); // Pause before next pass through loop
+      }
       axeCount--;
       delay(5000);
       start = 1;
