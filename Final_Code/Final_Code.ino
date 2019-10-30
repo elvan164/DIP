@@ -15,10 +15,10 @@
 // strandtest example for more information on possible values.
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
-#define DELAYVAL 50 // Time (in milliseconds) to pause between pixels
+#define DELAYVAL 0 // Time (in milliseconds) to pause between pixels
 
 
-double humidity = 70.0;
+double humidity = 90.0;
 int LEDdelay = 500;
 double lightThreshold = 200;
 
@@ -150,10 +150,18 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
 
     delay(DELAYVAL); // Pause before next pass through loop
     }
-    delay(10000);
-    start = 1;
+    delay(20000);
 
-    delay(10000);
+    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+
+    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+    pixels.setPixelColor(i, pixels.Color(0, 0, 0)); // fade from red to off
+
+    pixels.show();   // Send the updated pixel colors to the hardware.
+
+    delay(DELAYVAL); // Pause before next pass through loop
+    }
+    start = 1;
   }
 
   /* Has a card been detected? */
