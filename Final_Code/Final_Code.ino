@@ -9,6 +9,7 @@
 #define LEDStrip3 6 //
 #define LEDStrip4 7 // Top Strip Lefttmost on Breadboard
 #define LEDStrip5 8 // Strip on trunk of tree
+#define LEDBulb 10; //5MM Random LED
 
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS 150
@@ -86,6 +87,8 @@ void setup()
   SPI.begin(); 
   /* Initialise the RFID reader */
   RC522.init();
+
+  pinMode(ledPin,OUTPUT); //5mm Random LED
   
   randomSeed(analogRead(0));
 }
@@ -178,6 +181,19 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
 
     delay(DELAYVAL); // Pause before next pass through loop
     }
+
+    //5MM LED on off randomly
+    randOn = random(0,3);
+    Serial.println(randOn);
+    if (randOn == 0) {
+      digitalWrite(ledPin, HIGH);
+    }
+    else
+    {
+      digitalWrite(ledPin, LOW);
+    }
+      delay(250);
+    //5MM END
 
     start = 2;
     axeCount = 4;
@@ -286,6 +302,10 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
    
     delay(DELAYVAL); // Pause before next pass through loop
     }
+
+    //5MM LED off
+      digitalWrite(ledPin, HIGH);
+    //5MM END
     
     start = 1;
   }
@@ -358,9 +378,22 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
       default:
       break;
 
+      //5MM LED on off randomly
+      randOn = random(0,3);
+      Serial.println(randOn);
+      if (randOn == 0) {
+        digitalWrite(ledPin, HIGH);
+      }
+      else
+      {
+        digitalWrite(ledPin, LOW);
+      }
+        delay(250);
+      //5MM END
+
     }
   }
-    if ((LightValue>800) && (start == 1))
+    if ((LightValue>800) && (start == 1)) //disco code
   {
     Serial.println(LightValue);
     for(int i=0; i<NUMPIXELS; i++) { // For each pixel
@@ -370,15 +403,15 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
       randRed = random(0,255);
       randGreen = random(0,255);
       randBlue = random(0,255);
-      Serial.println("hi2");
+      
       for (int j=i ; j<NUMPIXELS; j=j+5){
       pixels5.setPixelColor(j, pixels5.Color(randRed, randGreen, randBlue));
       }
 
       randRed = random(0,255);
       randGreen = random(0,255);
-      randBlue = random(0,255);
-      Serial.println("hi3");
+      randBlue = random(0,255)--;
+      
       for (int j=i ; j<NUMPIXELS; j=j+5){
       pixels1.setPixelColor(j, pixels1.Color(randRed, randGreen, randBlue));
       }
