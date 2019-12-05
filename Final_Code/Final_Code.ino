@@ -4,37 +4,31 @@
 #endif
 
 // Which pin on the Arduino is connected to the NeoPixels?
-#define LEDStrip1 4 // Bottom Strip
+#define LEDStrip1 4 // Bottom Strip Rightmost on Breadboard
 #define LEDStrip2 5 //
 #define LEDStrip3 6 //
-#define LEDStrip4 7 // Top Strip
-
+#define LEDStrip4 7 // Top Strip Lefttmost on Breadboard
+#define LEDStrip5 8 // Strip on trunk of tree
 
 // How many NeoPixels are attached to the Arduino?
-#define NUMPIXELS1 300 // LED 1 Strip Size Bottom
-#define NUMPIXELS2 300 // LED 2 Strip Size
-#define NUMPIXELS3 300 // LED 3 Strip Size
-#define NUMPIXELS4 300 // LED 4 Strip Size Top
 #define NUMPIXELS 150
 
 // When setting up the NeoPixel library, we tell it how many pixels,
 // and which pin to use to send signals. Note that for older NeoPixel
 // strips you might need to change the third parameter -- see the
 // strandtest example for more information on possible values.
-Adafruit_NeoPixel pixels1(NUMPIXELS1, LEDStrip1, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel pixels2(NUMPIXELS2, LEDStrip2, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel pixels3(NUMPIXELS3, LEDStrip3, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel pixels4(NUMPIXELS4, LEDStrip4, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels1(NUMPIXELS, LEDStrip1, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels2(NUMPIXELS, LEDStrip2, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels3(NUMPIXELS, LEDStrip3, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels4(NUMPIXELS, LEDStrip4, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels5(NUMPIXELS, LEDStrip5, NEO_GRB + NEO_KHZ800);
 
 #define DELAYVAL 0 // Time (in milliseconds) to pause between pixels
-
 
 double humidity = 99.0;
 int LEDdelay = 500;
 double lightThreshold = 200;
-
 int start = 0; // start of project
-
 
 #include <DHT22.h>
 #include <stdio.h>
@@ -71,7 +65,6 @@ RFID RC522(SDA_DIO, RESET_DIO);
 
 int axeCount = 4;
 
-
 void setup()
 {
   Serial.begin(9600);
@@ -87,15 +80,17 @@ void setup()
   pixels2.begin();
   pixels3.begin();
   pixels4.begin();
+  pixels5.begin();
 
   /* Enable the SPI interface */
   SPI.begin(); 
   /* Initialise the RFID reader */
   RC522.init();
+  
+  randomSeed(analogRead(0));
 }
 void loop()
 {
-
   unsigned int LightValue;
   LightValue = analogRead(A0);//pin of light sensor
   //Serial.println(AnalogValue); 
@@ -111,14 +106,6 @@ DHT22_ERROR_t errorCode;
   switch(errorCode)
   {
     case DHT_ERROR_NONE:
-      //Serial.print("Got Data ");
-      //Serial.print(myDHT22.getTemperatureC());
-      //Serial.print("C ");
-      //Serial.print(myDHT22.getHumidity());
-      //Serial.println("%");
-      // Alternately, with integer formatting which is clumsier but more compact to store and
-    // can be compared reliably for equality:
-    //    
       char buf[128];
       sprintf(buf, "Humidity %i.%01i %%",
                    myDHT22.getHumidityInt()/10, myDHT22.getHumidityInt()%10);
@@ -136,11 +123,22 @@ if (start == 0){
     pixels2.clear(); // Set all pixel colors to 'off'
     pixels3.clear(); // Set all pixel colors to 'off'
     pixels4.clear(); // Set all pixel colors to 'off'
+    pixels5.clear();
     start = 1;
 }
 
 if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause each group to turn green, inside out
   {
+    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+
+    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+    pixels5.setPixelColor(i, pixels5.Color(0,150,0));
+
+    pixels5.show();   // Send the updated pixel colors to the hardware.
+
+    delay(DELAYVAL); // Pause before next pass through loop
+    }
+    
     for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
@@ -181,30 +179,29 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    
     start = 2;
     axeCount = 4;
   }
   
   if ((LightValue<lightThreshold) && (start == 2)) //shining light will cause each group to turn red, inside out then turn off
   {
-    //delay(500);
+    
     for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    pixels4.setPixelColor(i, pixels4.Color(150, 0, 0));
+    pixels5.setPixelColor(i, pixels5.Color(150, 0, 0));
 
-    pixels4.show();   // Send the updated pixel colors to the hardware.
+    pixels5.show();   // Send the updated pixel colors to the hardware.
 
     delay(DELAYVAL); // Pause before next pass through loop
     }
-
+    
     for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    pixels3.setPixelColor(i, pixels3.Color(150, 0, 0));
+    pixels1.setPixelColor(i, pixels1.Color(150, 0, 0));
 
-    pixels3.show();   // Send the updated pixel colors to the hardware.
+    pixels1.show();   // Send the updated pixel colors to the hardware.
 
     delay(DELAYVAL); // Pause before next pass through loop
     }
@@ -222,30 +219,30 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    pixels1.setPixelColor(i, pixels41.Color(150, 0, 0));
+    pixels3.setPixelColor(i, pixels3.Color(150, 0, 0));
 
-    pixels1.show();   // Send the updated pixel colors to the hardware.
+    pixels3.show();   // Send the updated pixel colors to the hardware.
 
-    delay(DELAYVAL); // Pause before next pass through loop
-    }
-    delay(20000);
-
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-
-    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    pixels1.setPixelColor(i, pixels1.Color(0, 0, 0)); // fade from red to off
-   
-    pixels1.show();   // Send the updated pixel colors to the hardware.
-   
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
     for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    pixels2.setPixelColor(i, pixels2.Color(0, 0, 0)); // fade from red to off
+    pixels4.setPixelColor(i, pixels4.Color(150, 0, 0));
+
+    pixels4.show();   // Send the updated pixel colors to the hardware.
+
+    delay(DELAYVAL); // Pause before next pass through loop
+    }
+    delay(10000);
+
+    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+
+    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+    pixels4.setPixelColor(i, pixels4.Color(0, 0, 0)); // fade from red to off
    
-    pixels2.show();   // Send the updated pixel colors to the hardware.
+    pixels4.show();   // Send the updated pixel colors to the hardware.
    
     delay(DELAYVAL); // Pause before next pass through loop
     }
@@ -263,12 +260,33 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    pixels4.setPixelColor(i, pixels4.Color(0, 0, 0)); // fade from red to off
+    pixels2.setPixelColor(i, pixels2.Color(0, 0, 0)); // fade from red to off
    
-    pixels4.show();   // Send the updated pixel colors to the hardware.
+    pixels2.show();   // Send the updated pixel colors to the hardware.
    
     delay(DELAYVAL); // Pause before next pass through loop
     }
+
+    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+
+    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+    pixels1.setPixelColor(i, pixels1.Color(0, 0, 0)); // fade from red to off
+   
+    pixels1.show();   // Send the updated pixel colors to the hardware.
+   
+    delay(DELAYVAL); // Pause before next pass through loop
+    }
+
+    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+
+    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+    pixels5.setPixelColor(i, pixels5.Color(0, 0, 0)); // fade from red to off
+   
+    pixels5.show();   // Send the updated pixel colors to the hardware.
+   
+    delay(DELAYVAL); // Pause before next pass through loop
+    }
+    
     start = 1;
   }
 
@@ -280,27 +298,15 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
       for(int i=0; i<NUMPIXELS; i++) { // For each pixel
 
       // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-      pixels1.setPixelColor(i, pixels1.Color(0, 0, 0));
+      pixels4.setPixelColor(i, pixels4.Color(0, 0, 0));
 
-      pixels1.show();   // Send the updated pixel colors to the hardware.
+      pixels4.show();   // Send the updated pixel colors to the hardware.
 
       delay(DELAYVAL); // Pause before next pass through loop
       }
       axeCount--;
       break;
       case 3:
-      for(int i=0; i<NUMPIXELS; i++) { // For each pixel
-
-      // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-      pixels2.setPixelColor(i, pixels2.Color(0, 0, 0));
-
-      pixels2.show();   // Send the updated pixel colors to the hardware.
-
-      delay(DELAYVAL); // Pause before next pass through loop
-      }
-      axeCount--;
-      break;
-      case 2:
       for(int i=0; i<NUMPIXELS; i++) { // For each pixel
 
       // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
@@ -312,16 +318,39 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
       }
       axeCount--;
       break;
+      case 2:
+      for(int i=0; i<NUMPIXELS; i++) { // For each pixel
+
+      // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+      pixels2.setPixelColor(i, pixels2.Color(0, 0, 0));
+
+      pixels2.show();   // Send the updated pixel colors to the hardware.
+
+      delay(DELAYVAL); // Pause before next pass through loop
+      }
+      axeCount--;
+      break;
       case 1:
       for(int i=0; i<NUMPIXELS; i++) { // For each pixel
 
       // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-      pixels4.setPixelColor(i, pixels4.Color(0, 0, 0));
+      pixels1.setPixelColor(i, pixels1.Color(0, 0, 0));
 
-      pixels4.show();   // Send the updated pixel colors to the hardware.
+      pixels1.show();   // Send the updated pixel colors to the hardware.
 
       delay(DELAYVAL); // Pause before next pass through loop
       }
+
+      for(int i=0; i<NUMPIXELS; i++) { // For each pixel
+
+      // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+      pixels5.setPixelColor(i, pixels5.Color(0, 0, 0));
+
+      pixels5.show();   // Send the updated pixel colors to the hardware.
+
+      delay(DELAYVAL); // Pause before next pass through loop
+      }
+      
       axeCount--;
       delay(5000);
       start = 1;
@@ -330,17 +359,63 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
       break;
 
     }
-    /* If so then get its serial number */
-    /*RC522.readCardSerial();
-    Serial.println("Card detected:");
-    for(int i=0;i<5;i++)
-    {
-    Serial.print(RC522.serNum[i],DEC);
-    //Serial.print(RC522.serNum[i],HEX); //to print card detail in Hexa Decimal format
-    }
-    Serial.println();
-    Serial.println();*/
   }
+    if ((LightValue>800) && (start == 1))
+  {
+    Serial.println(LightValue);
+    for(int i=0; i<NUMPIXELS; i++) { // For each pixel
+    long randRed, randGreen, randBlue;
+      // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
+      
+      randRed = random(0,255);
+      randGreen = random(0,255);
+      randBlue = random(0,255);
+      Serial.println("hi2");
+      for (int j=i ; j<NUMPIXELS; j=j+5){
+      pixels5.setPixelColor(j, pixels5.Color(randRed, randGreen, randBlue));
+      }
+
+      randRed = random(0,255);
+      randGreen = random(0,255);
+      randBlue = random(0,255);
+      Serial.println("hi3");
+      for (int j=i ; j<NUMPIXELS; j=j+5){
+      pixels1.setPixelColor(j, pixels1.Color(randRed, randGreen, randBlue));
+      }
+
+      randRed = random(0,255);
+      randGreen = random(0,255);
+      randBlue = random(0,255);
+      
+      for (int j=i ; j<NUMPIXELS; j=j+5){
+      pixels2.setPixelColor(j, pixels2.Color(randRed, randGreen, randBlue));
+      }
+
+      randRed = random(0,255);
+      randGreen = random(0,255);
+      randBlue = random(0,255);
+      
+      for (int j=i ; j<NUMPIXELS; j=j+5){
+      pixels3.setPixelColor(j, pixels3.Color(randRed, randGreen, randBlue));
+      }
+
+      randRed = random(0,255);
+      randGreen = random(0,255);
+      randBlue = random(0,255);
+      
+      for (int j=i ; j<NUMPIXELS; j=j+5){
+      pixels4.setPixelColor(j, pixels4.Color(randRed, randGreen, randBlue));
+      }
+    
+      
+      pixels5.show();   // Send the updated pixel colors to the hardware.
+      pixels1.show();   // Send the updated pixel colors to the hardware.
+      pixels2.show();   // Send the updated pixel colors to the hardware.
+      pixels3.show();   // Send the updated pixel colors to the hardware.
+      pixels4.show();   // Send the updated pixel colors to the hardware.
+
+      delay(DELAYVAL); // Pause before next pass through loop
+    }
+  }  
   delay(1000);
-  
 }
