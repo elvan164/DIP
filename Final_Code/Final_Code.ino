@@ -3,15 +3,15 @@
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
 
-// Which pin on the Arduino is connected to the NeoPixels?
+
+// Which pin on the Arduino is connected to the NeoPixels? Green to Data Pin, Red to +ve from Power Supply, Black to Ground
 #define LEDStrip1 4 // Bottom Strip Rightmost on Breadboard
 #define LEDStrip2 5 //
 #define LEDStrip3 6 //
-#define LEDStrip4 7 // Top Strip Lefttmost on Breadboard
+#define LEDStrip4 7 // Top Strip Leftmost on Breadboard
 #define LEDStrip5 8 // Strip on trunk of tree
-#define LEDBulb 10; //5MM Random LED
 
-// How many NeoPixels are attached to the Arduino?
+// How many NeoPixels are attached to the Arduino? 60 LED per metre
 #define NUMPIXELS 150
 
 // When setting up the NeoPixel library, we tell it how many pixels,
@@ -24,22 +24,20 @@ Adafruit_NeoPixel pixels3(NUMPIXELS, LEDStrip3, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel pixels4(NUMPIXELS, LEDStrip4, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel pixels5(NUMPIXELS, LEDStrip5, NEO_GRB + NEO_KHZ800);
 
-#define DELAYVAL 0 // Time (in milliseconds) to pause between pixels
+#define DELAYVAL 10 // Time (in milliseconds) to pause between pixels
 
-double humidity = 99.0;
-int LEDdelay = 500;
-double lightThreshold = 200;
+double humidity = 99.9;
+double lightThreshold = 100;
 int start = 0; // start of project
+int i; //count for loop to light up LED strip
 
 #include <DHT22.h>
 #include <stdio.h>
-// Green of Humidity Sensor to pin 22
-#define DHT22_PIN 22
 
+// Green of Humidity Sensor to Pin 22, Red to 5V, Black to Ground
+#define DHT22_PIN 22
 // Setup a DHT22 instance
 DHT22 myDHT22(DHT22_PIN);
-
-//LED 0 is max on, 255 is max off
 
 /*
 PINOUT:
@@ -50,10 +48,9 @@ MOSI            D11          D51
 MISO            D12          D50
 IRQ             N/A          N/A
 GND             GND          GND
-RST             D9           D49
+RST             D9           D48
 3.3V            3.3V         3.3V
 */
-
 /* Include the standard Arduino SPI library */
 #include <SPI.h>
 /* Include the RFID library */
@@ -62,9 +59,9 @@ RST             D9           D49
 #define SDA_DIO 49
 #define RESET_DIO 48
 /* Create an instance of the RFID library */
-RFID RC522(SDA_DIO, RESET_DIO); 
+RFID RC522(SDA_DIO, RESET_DIO);
 
-int axeCount = 4;
+int axeCount = 5;
 
 void setup()
 {
@@ -77,7 +74,7 @@ void setup()
 #endif
   // END of Trinket-specific code.
 
-  pixels1.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
+  pixels1.begin(); // INITIALIZE NeoPixel strip object
   pixels2.begin();
   pixels3.begin();
   pixels4.begin();
@@ -87,23 +84,17 @@ void setup()
   SPI.begin(); 
   /* Initialise the RFID reader */
   RC522.init();
-
-  pinMode(ledPin,OUTPUT); //5mm Random LED
-  
-  randomSeed(analogRead(0));
+ 
 }
 void loop()
 {
-  unsigned int LightValue;
-  LightValue = analogRead(A0);//pin of light sensor
-  //Serial.println(AnalogValue); 
+  double LightValue;
+  LightValue = analogRead(A0); //A0 pin of light sensor, ground to ground, VCC to 3.3V OR 5V 
 
 DHT22_ERROR_t errorCode;
   
   // The sensor can only be read from every 1-2s, and requires a minimum
   // 2s warm-up after power-on.
-  //delay(1000);
-  
   //Serial.print("Requesting data...");
   errorCode = myDHT22.readData();
   switch(errorCode)
@@ -115,8 +106,12 @@ DHT22_ERROR_t errorCode;
       Serial.println(buf);
       Serial.print("Light Value is ");
       Serial.println(LightValue);
+      Serial.print("Light Thres is ");
+      Serial.println(lightThreshold);
       Serial.print("Axe Value is ");
       Serial.println(axeCount);
+      Serial.print("Start Value is ");
+      Serial.println(start);
       Serial.println();
       break;
   }
@@ -130,9 +125,9 @@ if (start == 0){
     start = 1;
 }
 
-if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause each group to turn green, inside out
+if ((myDHT22.getHumidity() >= humidity) && (start == 1) ) //blowing will cause each group to turn green, inside out
   {
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=NUMPIXELS; i>0; i--) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels5.setPixelColor(i, pixels5.Color(0,150,0));
@@ -142,7 +137,7 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
     
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels1.setPixelColor(i, pixels1.Color(0,150,0));
@@ -152,7 +147,7 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
     
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels2.setPixelColor(i, pixels2.Color(0,150,0));
@@ -162,7 +157,7 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels3.setPixelColor(i, pixels3.Color(0,150,0));
@@ -172,7 +167,7 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels4.setPixelColor(i, pixels4.Color(0,150,0));
@@ -182,27 +177,14 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    //5MM LED on off randomly
-    randOn = random(0,3);
-    Serial.println(randOn);
-    if (randOn == 0) {
-      digitalWrite(ledPin, HIGH);
-    }
-    else
-    {
-      digitalWrite(ledPin, LOW);
-    }
-      delay(250);
-    //5MM END
-
     start = 2;
-    axeCount = 4;
+    axeCount = 5;
   }
   
   if ((LightValue<lightThreshold) && (start == 2)) //shining light will cause each group to turn red, inside out then turn off
   {
     
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=NUMPIXELS; i>0; i--) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels5.setPixelColor(i, pixels5.Color(150, 0, 0));
@@ -212,7 +194,7 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
     
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels1.setPixelColor(i, pixels1.Color(150, 0, 0));
@@ -222,7 +204,7 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels2.setPixelColor(i, pixels2.Color(150, 0, 0));
@@ -232,7 +214,7 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels3.setPixelColor(i, pixels3.Color(150, 0, 0));
@@ -242,7 +224,7 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for(int i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels4.setPixelColor(i, pixels4.Color(150, 0, 0));
@@ -251,9 +233,10 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
 
     delay(DELAYVAL); // Pause before next pass through loop
     }
+    
     delay(10000);
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels4.setPixelColor(i, pixels4.Color(0, 0, 0)); // fade from red to off
@@ -263,7 +246,7 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels3.setPixelColor(i, pixels3.Color(0, 0, 0)); // fade from red to off
@@ -273,7 +256,7 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for(int i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels2.setPixelColor(i, pixels2.Color(0, 0, 0)); // fade from red to off
@@ -283,7 +266,7 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels1.setPixelColor(i, pixels1.Color(0, 0, 0)); // fade from red to off
@@ -293,8 +276,8 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-
+    for( i=NUMPIXELS; i>0; i--) { // For each pixel
+      
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels5.setPixelColor(i, pixels5.Color(0, 0, 0)); // fade from red to off
    
@@ -302,11 +285,6 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
    
     delay(DELAYVAL); // Pause before next pass through loop
     }
-
-    //5MM LED off
-      digitalWrite(ledPin, HIGH);
-    //5MM END
-    
     start = 1;
   }
 
@@ -314,8 +292,8 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
   if ((RC522.isCard()) && (start == 2) ) //will turn off from green, outside in
   {
     switch(axeCount){
-      case 4:
-      for(int i=0; i<NUMPIXELS; i++) { // For each pixel
+      case 5:
+      for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
       // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
       pixels4.setPixelColor(i, pixels4.Color(0, 0, 0));
@@ -326,8 +304,9 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
       }
       axeCount--;
       break;
-      case 3:
-      for(int i=0; i<NUMPIXELS; i++) { // For each pixel
+      
+      case 4:
+      for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
       // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
       pixels3.setPixelColor(i, pixels3.Color(0, 0, 0));
@@ -338,8 +317,9 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
       }
       axeCount--;
       break;
-      case 2:
-      for(int i=0; i<NUMPIXELS; i++) { // For each pixel
+      
+      case 3:
+      for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
       // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
       pixels2.setPixelColor(i, pixels2.Color(0, 0, 0));
@@ -350,8 +330,9 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
       }
       axeCount--;
       break;
-      case 1:
-      for(int i=0; i<NUMPIXELS; i++) { // For each pixel
+      
+      case 2:
+      for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
       // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
       pixels1.setPixelColor(i, pixels1.Color(0, 0, 0));
@@ -360,9 +341,12 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
 
       delay(DELAYVAL); // Pause before next pass through loop
       }
-
-      for(int i=0; i<NUMPIXELS; i++) { // For each pixel
-
+      axeCount--;
+      break;
+      
+      case 1:
+       for(  i=NUMPIXELS; i>0; i--) { // For each pixel
+     
       // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
       pixels5.setPixelColor(i, pixels5.Color(0, 0, 0));
 
@@ -370,85 +354,14 @@ if ((myDHT22.getHumidity() > humidity) && (start == 1) ) //blowing will cause ea
 
       delay(DELAYVAL); // Pause before next pass through loop
       }
-      
       axeCount--;
       delay(5000);
       start = 1;
       break;
+      
       default:
       break;
-
-      //5MM LED on off randomly
-      randOn = random(0,3);
-      Serial.println(randOn);
-      if (randOn == 0) {
-        digitalWrite(ledPin, HIGH);
-      }
-      else
-      {
-        digitalWrite(ledPin, LOW);
-      }
-        delay(250);
-      //5MM END
-
     }
   }
-    if ((LightValue>800) && (start == 1)) //disco code
-  {
-    Serial.println(LightValue);
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel
-    long randRed, randGreen, randBlue;
-      // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-      
-      randRed = random(0,255);
-      randGreen = random(0,255);
-      randBlue = random(0,255);
-      
-      for (int j=i ; j<NUMPIXELS; j=j+5){
-      pixels5.setPixelColor(j, pixels5.Color(randRed, randGreen, randBlue));
-      }
-
-      randRed = random(0,255);
-      randGreen = random(0,255);
-      randBlue = random(0,255)--;
-      
-      for (int j=i ; j<NUMPIXELS; j=j+5){
-      pixels1.setPixelColor(j, pixels1.Color(randRed, randGreen, randBlue));
-      }
-
-      randRed = random(0,255);
-      randGreen = random(0,255);
-      randBlue = random(0,255);
-      
-      for (int j=i ; j<NUMPIXELS; j=j+5){
-      pixels2.setPixelColor(j, pixels2.Color(randRed, randGreen, randBlue));
-      }
-
-      randRed = random(0,255);
-      randGreen = random(0,255);
-      randBlue = random(0,255);
-      
-      for (int j=i ; j<NUMPIXELS; j=j+5){
-      pixels3.setPixelColor(j, pixels3.Color(randRed, randGreen, randBlue));
-      }
-
-      randRed = random(0,255);
-      randGreen = random(0,255);
-      randBlue = random(0,255);
-      
-      for (int j=i ; j<NUMPIXELS; j=j+5){
-      pixels4.setPixelColor(j, pixels4.Color(randRed, randGreen, randBlue));
-      }
-    
-      
-      pixels5.show();   // Send the updated pixel colors to the hardware.
-      pixels1.show();   // Send the updated pixel colors to the hardware.
-      pixels2.show();   // Send the updated pixel colors to the hardware.
-      pixels3.show();   // Send the updated pixel colors to the hardware.
-      pixels4.show();   // Send the updated pixel colors to the hardware.
-
-      delay(DELAYVAL); // Pause before next pass through loop
-    }
-  }  
-  delay(1000);
+  delay(2500);
 }
