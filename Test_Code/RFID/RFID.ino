@@ -7,7 +7,7 @@ MOSI            D11          D51
 MISO            D12          D50
 IRQ             N/A          N/A
 GND             GND          GND
-RST             D9           D49
+RST             D9           D48
 3.3V            3.3V         3.3V
 */
 /* Include the standard Arduino SPI library */

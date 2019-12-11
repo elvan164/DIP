@@ -9,7 +9,7 @@
 #define LEDStrip2 5 //
 #define LEDStrip3 6 //
 #define LEDStrip4 7 // Top Strip Leftmost on Breadboard
-#define LEDStrip5 8 // Strip on trunk of tree
+#define LEDStrip5 26 // Strip on trunk of tree
 
 // How many NeoPixels are attached to the Arduino? 60 LED per metre
 #define NUMPIXELS 150
@@ -89,7 +89,7 @@ void setup()
 void loop()
 {
   double LightValue;
-  LightValue = analogRead(A0); //A0 pin of light sensor, ground to ground, VCC to 3.3V OR 5V 
+  LightValue = analogRead(A1); //A0 pin of light sensor, ground to ground, VCC to 3.3V OR 5V 
 
 DHT22_ERROR_t errorCode;
   
@@ -224,7 +224,7 @@ if ((myDHT22.getHumidity() >= humidity) && (start == 1) ) //blowing will cause e
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels4.setPixelColor(i, pixels4.Color(150, 0, 0));
@@ -256,7 +256,7 @@ if ((myDHT22.getHumidity() >= humidity) && (start == 1) ) //blowing will cause e
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
 
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels2.setPixelColor(i, pixels2.Color(0, 0, 0)); // fade from red to off
@@ -276,7 +276,7 @@ if ((myDHT22.getHumidity() >= humidity) && (start == 1) ) //blowing will cause e
     delay(DELAYVAL); // Pause before next pass through loop
     }
 
-    for( i=NUMPIXELS; i>0; i--) { // For each pixel
+    for( i=0; i<NUMPIXELS; i++) { // For each pixel
       
     // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
     pixels5.setPixelColor(i, pixels5.Color(0, 0, 0)); // fade from red to off
@@ -345,7 +345,7 @@ if ((myDHT22.getHumidity() >= humidity) && (start == 1) ) //blowing will cause e
       break;
       
       case 1:
-       for(  i=NUMPIXELS; i>0; i--) { // For each pixel
+       for( i=0; i<NUMPIXELS; i++) { // For each pixel
      
       // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
       pixels5.setPixelColor(i, pixels5.Color(0, 0, 0));
