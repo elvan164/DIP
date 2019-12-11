@@ -3,7 +3,6 @@
  #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
 #endif
 
-
 // Which pin on the Arduino is connected to the NeoPixels? Green to Data Pin, Red to +ve from Power Supply, Black to Ground
 #define LEDStrip1 4 // Bottom Strip Rightmost on Breadboard
 #define LEDStrip2 5 //
@@ -14,10 +13,7 @@
 // How many NeoPixels are attached to the Arduino? 60 LED per metre
 #define NUMPIXELS 150
 
-// When setting up the NeoPixel library, we tell it how many pixels,
-// and which pin to use to send signals. Note that for older NeoPixel
-// strips you might need to change the third parameter -- see the
-// strandtest example for more information on possible values.
+// When setting up the NeoPixel library, we tell it how many pixels, and which pin to use to send signals
 Adafruit_NeoPixel pixels1(NUMPIXELS, LEDStrip1, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel pixels2(NUMPIXELS, LEDStrip2, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel pixels3(NUMPIXELS, LEDStrip3, NEO_GRB + NEO_KHZ800);
@@ -67,7 +63,7 @@ void setup()
 {
   Serial.begin(9600);
 
-   // These lines are specifically to support the Adafruit Trinket 5V 16 MHz.
+  // These lines are specifically to support the Adafruit Trinket 5V 16 MHz.
   // Any other board, you can remove this part (but no harm leaving it):
 #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
   clock_prescale_set(clock_div_1);
@@ -95,7 +91,6 @@ DHT22_ERROR_t errorCode;
   
   // The sensor can only be read from every 1-2s, and requires a minimum
   // 2s warm-up after power-on.
-  //Serial.print("Requesting data...");
   errorCode = myDHT22.readData();
   switch(errorCode)
   {
@@ -288,8 +283,7 @@ if ((myDHT22.getHumidity() >= humidity) && (start == 1) ) //blowing will cause e
     start = 1;
   }
 
-  /* Has a card been detected? */
-  if ((RC522.isCard()) && (start == 2) ) //will turn off from green, outside in
+  if ((RC522.isCard()) && (start == 2) ) //RFID scan will turn off from green, outside in
   {
     switch(axeCount){
       case 5:
